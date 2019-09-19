@@ -20,6 +20,10 @@ A range of different samples classes can be seen in this folder.
 The class names follow a naming convention which indicates the purpose of each class.
 The full description of this convention is found in the samples/sample_convention.md file.
 
+
+
+
+x
 A brief synopsis of the naming convention is given here:
 The prefix of the name will be one of the following:
 
