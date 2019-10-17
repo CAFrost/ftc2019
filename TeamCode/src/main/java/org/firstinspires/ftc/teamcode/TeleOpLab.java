@@ -111,8 +111,17 @@ public class TeleOpLab extends OpMode {
         {
             openClaw();
         }
-
+        boolean dpad_up = gamepad2.dpad_up;
+        boolean dpad_down = gamepad2.dpad_down;
+        if (dpad_up)
+        {
+            wristup();
+        }
+        else if (dpad_down) {
+            wristdown();
+        }
     }
+
 
     @Override
     public void stop() {
@@ -133,6 +142,15 @@ public class TeleOpLab extends OpMode {
         servo1.setPosition(0.2);
         servo0.setPosition(0.8);
         telemetry.addData("Servos", "Left (%d), Right (%d)", 1, 0);
+
+    }
+    public void wristup() {
+        servo2.setPosition(0.2);
+        telemetry.addData("Servos", "wrist (%d),", 0);
+    }
+    public void wristdown() {
+        servo2.setPosition(0.9);
+        telemetry.addData("servos", "wrist (%d)", 1);
     }
 
 }
