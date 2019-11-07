@@ -29,20 +29,20 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import android.graphics.Color;
-
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-//import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
+
+//import com.qualcomm.robotcore.hardware.ColorSensor;
 //import com.qualcomm.robotcore.hardware.DcMotorSimple;
 //import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 //import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
 //import com.qualcomm.robotcore.hardware.SwitchableLight;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -58,11 +58,14 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="T:Lab", group="Lab")
-public class TeleOpLab extends OpMode {
+@Autonomous(name="A:Lab", group="Lab")
+public class AutonomousLab extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor motor0 = null, motor1 = null, motor2 = null, motor3 = null, motor4 = null, motor5 = null;
     private Servo servo0 = null, servo1 = null, servo2 = null;
+    private boolean turnleft, driveForward1, driveForward2, resetEncoderTurnLeft, resetEncoderDriveForward;
+    private int startingPositionDrive1, startingPositionDrive2, startingPositionTurnLeft;
+
 
     @Override
     public void init() {
@@ -80,6 +83,10 @@ public class TeleOpLab extends OpMode {
         motor2.setDirection(DcMotorSimple.Direction.REVERSE);
         motor3.setDirection(DcMotorSimple.Direction.REVERSE);
         telemetry.addData("Status", "Initialized");
+        driveForward1 = true;
+        driveForward2 = false;
+        turnleft = false;
+
     }
 
     @Override
@@ -87,55 +94,84 @@ public class TeleOpLab extends OpMode {
         double leftPower;
         double rightPower;
 
-        double drive = -gamepad1.left_stick_y;
-        double turn = gamepad1.right_stick_x;
-        leftPower = Range.clip(drive + turn, -0.9, 0.9);
-        rightPower = Range.clip(drive - turn, -0.9, 0.9);
 
-        // Send calculated power to wheels
-        motor0.setPower(rightPower);
-        motor1.setPower(rightPower);
-        motor2.setPower(leftPower);
-        motor3.setPower(leftPower);
+        leftPower = -0.5;
+        rightPower = -0.5;
+        if (driveForward1 == true){
+            int motorPosition = motor1.getCurrentPosition();
+            telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+            if (motorPosition < (startingPositionDrive1 + 300)) {
+                motor0.setPower(rightPower);
+                motor1.setPower(rightPower);0
+                motor2.setPower(leftPower);
+                motor3.setPower(leftPower);
 
-        // Show the elapsed game time and wheel power.
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+            } else {
+                motor0.setPower(0);
+                motor1.setPower(0);
+                motor2.setPower(0);
+                motor3.setPower(0);
+                driveForward1 = false;
+                turnleft = true;
+                resetEncoderTurnLeft = true;
 
-        boolean buttonOpen = gamepad2.right_bumper;
-        boolean buttonClose = gamepad2.left_bumper;
+            }
 
-        if (buttonClose)
-        {
-            closeClaw();
         }
-        else if (buttonOpen)
-        {
-            openClaw();
+        if (turnleft == true) {
+            if (resetEncoderTurnLeft == true) {
+                startingPositionTurnLeft = motor1.getCurrentPosition();
+                resetEncoderTurnLeft = false;
+            }
+            int motorPositionLeft = motor1.getCurrentPosition();
+            telemetry.addData("TurnLeft", "left (%.2f), right (%.2f)", leftPower, rightPower);
+            telemetry.addData("TurnLeft", "current (%d), starting (%d)", motorPositionLeft, startingPositionTurnLeft);
+
+            if (motorPositionLeft > (startingPositionTurnLeft - 1100)) {
+
+                motor0.setPower(-rightPower);
+                motor1.setPower(-rightPower);
+                motor2.setPower(leftPower);
+                motor3.setPower(leftPower);
+            } else {
+                motor0.setPower(0);
+                motor1.setPower(0);
+                motor2.setPower(0);
+                motor3.setPower(0);
+                resetEncoderDriveForward = true;
+                driveForward2 = true;
+                turnleft = false;
+
+                //REVOLUTION: 360 per turn of wheel
+
+
+            }
         }
-        boolean dpad_up = gamepad1.dpad_up;
-        boolean dpad_down = gamepad1.dpad_down;
-        if (dpad_up)
-        {
-            wristup();
+        if (driveForward2 == true){
+            if (resetEncoderDriveForward == true){
+                startingPositionDrive2 = motor1.getCurrentPosition();
+                resetEncoderDriveForward = false;
+            }
+            int motorPositionForward = motor1.getCurrentPosition();
+            telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+            telemetry.addData("Forward", "current (%d), starting (%d)", motorPositionForward, startingPositionDrive2);
+
+            if (motorPositionForward > (startingPositionDrive2 - 500)) {
+                motor0.setPower(-rightPower);
+                motor1.setPower(-rightPower);
+                motor2.setPower(-leftPower);
+                motor3.setPower(-leftPower);
+            } else {
+                motor0.setPower(0);
+                motor1.setPower(0);
+                motor2.setPower(0);
+                motor3.setPower(0);
+                driveForward2 = false;
+
+            }
+
+
         }
-        else if (dpad_down) {
-            wristdown();
-        }
-
-
-        double armHeight = -gamepad2.left_stick_y * 0.65;
-        armHeight = Range.clip(armHeight, 0.025, 0.6);
-        motor4.setPower(armHeight);
-        telemetry.addData("arm", "armHeight (%.2f)", armHeight);
-
-
-
-        double armLength = -gamepad2.right_stick_y * 0.5;
-        armLength = Range.clip(armLength, -0.4, 0.4);
-        motor5.setPower(armLength);
-        telemetry.addData("arm", "armLength (%.2f)", armLength);
-
 
     }
 
