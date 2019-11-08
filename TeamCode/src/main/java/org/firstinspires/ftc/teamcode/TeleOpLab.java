@@ -123,20 +123,24 @@ public class TeleOpLab extends OpMode {
             wristdown();
         }
 
-
+        boolean buttonFullPower = gamepad2.x;
         double armHeight = -gamepad2.left_stick_y * 0.65;
-        armHeight = Range.clip(armHeight, 0.025, 0.6);
+
+        if (buttonFullPower)
+        {
+            armHeight = Range.clip(armHeight, 0.025, 1.0);
+        }
+        else
+        {
+            armHeight = Range.clip(armHeight, 0.025, 0.6);
+        }
         motor4.setPower(armHeight);
         telemetry.addData("arm", "armHeight (%.2f)", armHeight);
-
-
 
         double armLength = -gamepad2.right_stick_y * 0.5;
         armLength = Range.clip(armLength, -0.4, 0.4);
         motor5.setPower(armLength);
         telemetry.addData("arm", "armLength (%.2f)", armLength);
-
-
     }
 
 
